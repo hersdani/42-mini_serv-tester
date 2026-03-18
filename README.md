@@ -23,7 +23,7 @@ It uses Python's `socket`, `subprocess`, and `select` libraries to simulate mult
 2. Run the tester:
 
 ```bash
-python3 tester.py
+python3 exam06-tester.py
 ```
 
 The script will automatically detect a free port and launch `mini_serv`, connecting multiple simulated clients to run all checks and validations.

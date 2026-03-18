@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-tester.py - A comprehensive test suite for the mini_serv.c project (42 Exam Rank 06).
+exam06-tester.py - A comprehensive test suite for the mini_serv.c project (42 Exam Rank 06).
 
 This script automates the testing of a mini_serv executable. It spans up a server,
 connects multiple clients, and tests various scenarios including:
@@ -18,7 +18,7 @@ import select
 def get_free_port():
     """
     Finds and returns an available port on the local machine.
-    
+
     Returns:
         int: A free port number.
     """
@@ -31,15 +31,15 @@ def get_free_port():
 class MiniServTester:
     """
     A class to test the mini_serv executable.
-    
+
     It launches the server process on a given port and provides methods to connect,
     disconnect, read responses, and run specific test suites.
     """
-    
+
     def __init__(self, port):
         """
         Initializes the tester and starts the mini_serv process.
-        
+
         Args:
             port (int): The port number to run the server on.
         """
@@ -56,7 +56,7 @@ class MiniServTester:
     def connect_client(self):
         """
         Connects a new client socket to the server.
-        
+
         Returns:
             tuple: A tuple containing the socket object and its assigned client ID.
         """
@@ -71,7 +71,7 @@ class MiniServTester:
     def disconnect_client(self, s):
         """
         Disconnects and closes a client socket.
-        
+
         Args:
             s (socket.socket): The client socket to disconnect.
         """
@@ -82,12 +82,12 @@ class MiniServTester:
     def read_until(self, s, expected, timeout=2.0):
         """
         Reads data from a socket until the expected string is found or a timeout occurs.
-        
+
         Args:
             s (socket.socket): The socket to read from.
             expected (str): The expected substring to look for in the received data.
             timeout (float): Maximum time to wait in seconds.
-            
+
         Returns:
             str: The decoded string received from the socket.
         """
@@ -110,11 +110,11 @@ class MiniServTester:
     def read_all(self, s, timeout=0.2):
         """
         Reads all available data from a socket until a timeout or no more data is received.
-        
+
         Args:
             s (socket.socket): The socket to read from.
             timeout (float): Maximum time to wait for data chunks.
-            
+
         Returns:
             str: The decoded string received from the socket.
         """
@@ -137,7 +137,7 @@ class MiniServTester:
     def test_basic(self):
         """
         Executes basic functionality tests.
-        
+
         Tests:
         - Arrival notification: proper broadcast when a new client connects.
         - Basic messaging: single line messages are routed correctly.
@@ -192,7 +192,7 @@ class MiniServTester:
     def test_stress(self):
         """
         Executes stress tests to ensure robustness and performance.
-        
+
         Tests:
         - High volume connections: establishes 250 concurrent clients to assess fd_set capabilities.
         - Mass messaging: sends simultaneous messages from numerous clients and checks receipt.
@@ -273,7 +273,7 @@ class MiniServTester:
 def main():
     """
     Main entry point of the tester.
-    
+
     Finds a random free port, runs the test suite against the server, and reports the results.
     Catches any exceptions and ensures proper cleanup.
     """
