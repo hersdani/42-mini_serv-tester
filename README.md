@@ -39,7 +39,7 @@ python3 exam06-tester.py --valgrind
 When you use this flag, the tester switches to **Manual Mode**. It will find a free port and pause, giving you the exact Valgrind command to run in a separate terminal.
 
 **Why is this needed?**
-During the 42 exam (on macOS), writing to a disconnected client safely returns `-1`. However, on Linux (where Valgrind runs), writing to a closed socket throws a fatal `SIGPIPE` signal that kills your server instantly. Because exam rules forbid you from writing signal handlers in your C code to ignore it, your server will artificially crash during stress tests on Linux before Valgrind can generate a memory report.
+During stress tests, when many clients disconnect simultaneously, writing to a closed socket throws a fatal `SIGPIPE` signal that kills your server instantly. Because the strict exam rules forbid you from using `signal()` in your C code to ignore it, your server would artificially crash during testing before Valgrind can generate a memory report.
 
 We solve this by having you run the server manually wrapped in a subshell that traps and ignores `SIGPIPE`. The tester will provide you with a command exactly like this to copy and paste into a new terminal:
 ```bash
