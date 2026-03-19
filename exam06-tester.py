@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-exam06-tester.py - A comprehensive test suite for the mini_serv.c project (42 Exam Rank 06).
+tester.py - A comprehensive test suite for the mini_serv.c project (42 Exam Rank 06).
 
 This script automates the testing of a mini_serv executable. It spans up a server,
 connects multiple clients, and tests various scenarios including:
@@ -10,6 +10,7 @@ connects multiple clients, and tests various scenarios including:
 - Handling large payloads and verifying server broadcast speed.
 """
 
+import argparse
 import socket
 import subprocess
 import time
@@ -36,20 +37,32 @@ class MiniServTester:
     disconnect, read responses, and run specific test suites.
     """
 
-    def __init__(self, port):
+    def __init__(self, port, use_valgrind=False):
         """
         Initializes the tester and starts the mini_serv process.
 
         Args:
             port (int): The port number to run the server on.
+            use_valgrind (bool): Whether to run the server with valgrind.
         """
         self.port = port
-        print(f"[*] Starting mini_serv on port {port}...")
-        self.server_process = subprocess.Popen(['./mini_serv', str(port)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        time.sleep(0.5) # Initial boot sleep is necessary to allow server to bind
-        if self.server_process.poll() is not None:
-            err = self.server_process.stderr.read().decode()
-            raise Exception(f"Server failed to start: {err}")
+        self.use_valgrind = use_valgrind
+        
+        self.server_process = None
+        if use_valgrind:
+            print(f"\n[*] \033[93mMANUAL MODE ENABLED\033[0m")
+            print(f"[*] Please run the following command in a new terminal:\n")
+            print(f"    (trap '' SIGPIPE; valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes -s ./mini_serv {port})\n")
+            input("[*] \033[92mPress ENTER here once your server is running...\033[0m")
+        else:
+            print(f"[*] Starting mini_serv on port {port}...")
+            cmd = ['./mini_serv', str(port)]
+            self.server_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            time.sleep(0.5) # Initial boot sleep is necessary to allow server to bind
+            if self.server_process.poll() is not None:
+                err = self.server_process.stderr.read().decode()
+                raise Exception(f"Server failed to start: {err}")
+                
         self.clients = []
         self.next_id = 0
 
@@ -216,7 +229,8 @@ class MiniServTester:
         for i, (c, cid) in enumerate(clients_data[:50]):
             c.sendall(f"Stress test message from {cid}\n".encode('utf-8'))
 
-        assert self.server_process.poll() is None, "Server crashed during stress test!"
+        if self.server_process is not None:
+            assert self.server_process.poll() is None, "Server crashed during stress test!"
 
         last_stress_cid = clients_data[49][1]
         expected_stress = f"client {last_stress_cid}: Stress test message from {last_stress_cid}\n"
@@ -260,15 +274,20 @@ class MiniServTester:
 
     def cleanup(self):
         """
-        Cleans up resources by closing all client sockets and terminating the server process.
+        Cleans up resources by closing all client sockets, terminating the server process,
+        and printing the valgrind report if enabled.
         """
         for c in self.clients:
             try:
                 c.close()
             except:
                 pass
-        self.server_process.terminate()
-        self.server_process.wait()
+                
+        if self.server_process is not None:
+            self.server_process.kill()
+            self.server_process.communicate()
+        elif hasattr(self, 'use_valgrind') and self.use_valgrind:
+            print("\n[*] \033[92mTests finished! You can now Ctrl+C your valgrind terminal to see the clean leak report.\033[0m")
 
 def main():
     """
@@ -277,8 +296,12 @@ def main():
     Finds a random free port, runs the test suite against the server, and reports the results.
     Catches any exceptions and ensures proper cleanup.
     """
+    parser = argparse.ArgumentParser(description="Test suite for mini_serv.")
+    parser.add_argument('--valgrind', action='store_true', help="Run the server with valgrind")
+    args = parser.parse_args()
+
     port = get_free_port()
-    tester = MiniServTester(port)
+    tester = MiniServTester(port, use_valgrind=args.valgrind)
     try:
         tester.test_basic()
         tester.test_stress()
