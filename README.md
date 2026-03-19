@@ -28,6 +28,25 @@ python3 exam06-tester.py
 
 The script will automatically detect a free port and launch `mini_serv`, connecting multiple simulated clients to run all checks and validations.
 
+### Valgrind Support
+
+To test your server for memory leaks and open file descriptors, you can use the `--valgrind` flag:
+
+```bash
+python3 exam06-tester.py --valgrind
+```
+
+When you use this flag, the tester switches to **Manual Mode**. It will find a free port and pause, giving you the exact Valgrind command to run in a separate terminal.
+
+**Why is this needed?**
+During the 42 exam (on macOS), writing to a disconnected client safely returns `-1`. However, on Linux (where Valgrind runs), writing to a closed socket throws a fatal `SIGPIPE` signal that kills your server instantly. Because exam rules forbid you from writing signal handlers in your C code to ignore it, your server will artificially crash during stress tests on Linux before Valgrind can generate a memory report.
+
+We solve this by having you run the server manually wrapped in a subshell that traps and ignores `SIGPIPE`. The tester will provide you with a command exactly like this to copy and paste into a new terminal:
+```bash
+(trap '' SIGPIPE; valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes -s ./mini_serv <port>)
+```
+Once your server is running via this command, press ENTER in the tester to begin the suite. Once finished, you can safely `Ctrl+C` your Valgrind terminal to read a clean, perfectly un-interrupted leak report!
+
 ## Tests Overview
 
 - **Test 1:** Basic connection & arrival notification
